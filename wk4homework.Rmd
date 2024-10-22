@@ -1,0 +1,53 @@
+---
+title: "Git, GitHub and RMarkdown"
+output: html_document
+date: "2024-10-22"
+---
+
+#### Packages
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(sf)
+library(countrycode)
+```
+
+#### Reading in
+
+GII csv
+
+```{r}
+GII <- read_csv("data/hdr-data.csv") %>%
+  clean_names()
+```
+
+World geojson
+
+```{r}
+world_sf <- read_sf("data/World_Countries_(Generalized)_9029012925078512962.geojson") %>%
+  mutate(iso3 = countrycode(ISO, origin = 'iso2c',destination = 'iso3c', nomatch = NA))
+```
+
+#### Tidying
+
+```{r}
+unique(GII$indicator) 
+
+GII_clean <- GII %>%
+  filter(indicator == "Gender Inequality Index (value)",
+         year == '2010' | year == '2019') %>%
+  select(country_iso_code,country,year,value)%>%
+  pivot_wider(names_from = year, values_from = value, names_prefix = 'y') %>%
+  mutate(difference = y2019 - y2010)
+```
+
+#### Merging
+
+```{r}
+GII_world <- GII_clean %>%
+  merge(.,
+        world_sf,
+        by.x = 'country_iso_code',
+        by.y = 'iso3')
+```
