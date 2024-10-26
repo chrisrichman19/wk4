@@ -366,13 +366,45 @@ library(countrycode)</code></pre>
 <h4>Reading in</h4>
 <p>Gender inequality index csv</p>
 <pre class="r"><code>GII &lt;- read_csv(&quot;data/hdr-data.csv&quot;) %&gt;%
-  clean_names()</code></pre>
+  clean_names()
+
+head(GII, 10)</code></pre>
+<pre><code>## # A tibble: 10 × 10
+##    country_iso_code country  index_code index dimension indicator_code indicator
+##    &lt;chr&gt;            &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt; &lt;lgl&gt;     &lt;chr&gt;          &lt;chr&gt;    
+##  1 AFG              Afghani… GII        Gend… NA        abr            Adolesce…
+##  2 AFG              Afghani… GII        Gend… NA        abr            Adolesce…
+##  3 AFG              Afghani… GII        Gend… NA        abr            Adolesce…
+##  4 AFG              Afghani… GII        Gend… NA        abr            Adolesce…
+##  5 AFG              Afghani… GII        Gend… NA        abr            Adolesce…
+##  6 AFG              Afghani… GII        Gend… NA        abr            Adolesce…
+##  7 AFG              Afghani… GII        Gend… NA        abr            Adolesce…
+##  8 AFG              Afghani… GII        Gend… NA        abr            Adolesce…
+##  9 AFG              Afghani… GII        Gend… NA        abr            Adolesce…
+## 10 AFG              Afghani… GII        Gend… NA        abr            Adolesce…
+## # ℹ 3 more variables: year &lt;dbl&gt;, value &lt;dbl&gt;, note &lt;lgl&gt;</code></pre>
 <p>Reading in World geojson data.</p>
 <p>Creating a iso3c column using countrycode package to be consistent
 with the GII data</p>
 <pre class="r"><code>world_sf &lt;- read_sf(&quot;data/World_Countries_(Generalized)_9029012925078512962.geojson&quot;) %&gt;%
-  select(c(3)) %&gt;%
-  mutate(iso3c = countrycode(ISO, origin = &#39;iso2c&#39;,destination = &#39;iso3c&#39;, nomatch = NA))</code></pre>
+  mutate(iso3c = countrycode(ISO, origin = &#39;iso2c&#39;,destination = &#39;iso3c&#39;, nomatch = NA)) %&gt;%
+  select(iso3c)
+
+head(world_sf)</code></pre>
+<pre><code>## Simple feature collection with 6 features and 1 field
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: -170.8232 ymin: -18.01639 xmax: 74.91574 ymax: 42.66035
+## Geodetic CRS:  WGS 84
+## # A tibble: 6 × 2
+##   iso3c                                                                 geometry
+##   &lt;chr&gt;                                                       &lt;MULTIPOLYGON [°]&gt;
+## 1 AFG   (((61.27655 35.60725, 61.29638 35.62854, 61.37505 35.6361, 61.42935 35.…
+## 2 ALB   (((19.57083 41.68527, 19.58195 41.69569, 19.59916 41.77972, 19.59771 41…
+## 3 DZA   (((4.603354 36.88791, 4.635554 36.88638, 4.699163 36.88611, 4.724445 36…
+## 4 ASM   (((-170.7439 -14.37555, -170.7494 -14.37389, -170.7664 -14.36361, -170.…
+## 5 AND   (((1.445836 42.60194, 1.486527 42.65042, 1.559718 42.65596, 1.698336 42…
+## 6 AGO   (((23.47611 -17.62584, 23.28916 -17.66111, 23.28472 -17.6625, 22.99639 …</code></pre>
 </div>
 <div id="tidying" class="section level4">
 <h4>Tidying</h4>
@@ -404,6 +436,16 @@ merging.</p></li>
   select(iso3c,country,year,value)%&gt;%
   pivot_wider(names_from = year, values_from = value, names_prefix = &#39;y&#39;) %&gt;%
   mutate(difference = y2019 - y2010)</code></pre>
+<pre class="r"><code>head(GII_clean)</code></pre>
+<pre><code>## # A tibble: 6 × 5
+##   iso3c country              y2010 y2019 difference
+##   &lt;chr&gt; &lt;chr&gt;                &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;
+## 1 AFG   Afghanistan          0.707 0.676    -0.0310
+## 2 AGO   Angola               0.554 0.533    -0.0210
+## 3 ALB   Albania              0.192 0.131    -0.061 
+## 4 ARE   United Arab Emirates 0.177 0.045    -0.132 
+## 5 ARG   Argentina            0.372 0.291    -0.081 
+## 6 ARM   Armenia              0.346 0.219    -0.127</code></pre>
 </div>
 <div id="merging" class="section level4">
 <h4>Merging</h4>
@@ -413,6 +455,16 @@ countries (iso3c codes) that appear in both datasets.</p>
   inner_join(.,
         world_sf,
         by = &#39;iso3c&#39;)</code></pre>
+<pre class="r"><code>head(GII_world)</code></pre>
+<pre><code>## # A tibble: 6 × 6
+##   iso3c country              y2010 y2019 difference                     geometry
+##   &lt;chr&gt; &lt;chr&gt;                &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;           &lt;MULTIPOLYGON [°]&gt;
+## 1 AFG   Afghanistan          0.707 0.676    -0.0310 (((61.27655 35.60725, 61.29…
+## 2 AGO   Angola               0.554 0.533    -0.0210 (((23.47611 -17.62584, 23.2…
+## 3 ALB   Albania              0.192 0.131    -0.061  (((19.57083 41.68527, 19.58…
+## 4 ARE   United Arab Emirates 0.177 0.045    -0.132  (((56.36027 25.42111, 56.36…
+## 5 ARG   Argentina            0.372 0.291    -0.081  (((-71.85916 -41.01128, -71…
+## 6 ARM   Armenia              0.346 0.219    -0.127  (((46.54037 38.87559, 46.51…</code></pre>
 </div>
 
 
