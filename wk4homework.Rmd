@@ -15,14 +15,16 @@ library(countrycode)
 
 #### Reading in
 
-GII csv
+Gender inequality index csv
 
 ```{r, message=FALSE}
 GII <- read_csv("data/hdr-data.csv") %>%
   clean_names()
 ```
 
-World geojson
+Reading in World geojson data.
+
+Creating a iso3c column using countrycode package to be consistent with the GII data
 
 ```{r}
 world_sf <- read_sf("data/World_Countries_(Generalized)_9029012925078512962.geojson") %>%
@@ -32,8 +34,18 @@ world_sf <- read_sf("data/World_Countries_(Generalized)_9029012925078512962.geoj
 
 #### Tidying
 
+-   Filtering to only include relevant values (GII) and the years of interest (2010 and 2019).
+
+-   Renaming country_iso_code to iso3c for ease of merging later with world_sf.
+
+-   Selecting only the relevant columns.
+
+-   Pivoting wider to convert the data to a tidy format for ease of merging.
+
+-   Creating the difference between 2019 and 2010 column
+
 ```{r}
-unique(GII$indicator) 
+unique(GII$indicator) #shows unique values for indicator columns
 
 GII_clean <- GII %>%
   filter(indicator == "Gender Inequality Index (value)",
@@ -45,6 +57,8 @@ GII_clean <- GII %>%
 ```
 
 #### Merging
+
+Merging world sf and GII data using an inner join to include countries (iso3c codes) that appear in both datasets.
 
 ```{r}
 GII_world <- GII_clean %>%
