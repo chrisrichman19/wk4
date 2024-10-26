@@ -11,6 +11,7 @@ library(tidyverse)
 library(janitor)
 library(sf)
 library(countrycode)
+library(tmap)
 ```
 
 #### Reading in
@@ -29,7 +30,7 @@ Reading in World geojson data.
 Creating a iso3c column using countrycode package to be consistent with the GII data
 
 ```{r}
-world_sf <- read_sf("data/World_Countries_(Generalized)_9029012925078512962.geojson") %>%
+world_sf <- st_read("data/World_Countries_(Generalized)_9029012925078512962.geojson") %>%
   mutate(iso3c = countrycode(ISO, origin = 'iso2c',destination = 'iso3c', nomatch = NA)) %>%
   select(iso3c)
 
@@ -72,9 +73,18 @@ Merging world sf and GII data using an inner join to include countries (iso3c co
 GII_world <- GII_clean %>%
   inner_join(.,
         world_sf,
-        by = 'iso3c')
+        by = 'iso3c') %>%
+  st_as_sf()
 ```
 
 ```{r}
 head(GII_world)
+```
+
+#### Mapping
+
+```{r}
+tm_shape(GII_world) +
+    tm_polygons("difference",
+                palette="-RdYlGn")
 ```
